@@ -5,32 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Malwa Diagnostic Imaging</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background: #fafafa; }
     header { background: #004466; color: white; padding: 20px; text-align: center; }
     nav { background: #006699; padding: 10px; text-align: center; }
-    nav a { color: white; margin: 0 15px; text-decoration: none; }
+    nav a { color: white; margin: 0 15px; text-decoration: none; font-weight: 500; }
     section { padding: 40px; }
     .services { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-    .card { background: #f2f2f2; padding: 20px; border-radius: 8px; width: 250px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .card { background: #ffffff; padding: 20px; border-radius: 12px; width: 250px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.3s ease; }
+    .card:hover { transform: translateY(-5px); }
     .gallery-strip { display: flex; overflow-x: auto; gap: 20px; padding: 20px; scroll-behavior: smooth; }
-    .gallery-strip img { flex: 0 0 auto; width: 350px; height: auto; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    form { max-width: 500px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
-    input, textarea, button { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-    button { background: #006699; color: white; border: none; cursor: pointer; }
-    button:hover { background: #004466; }
+    .gallery-strip img { flex: 0 0 auto; width: 350px; height: auto; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+    /* Stylish form */
+    form { max-width: 500px; margin: auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 15px; }
+    label { font-weight: 600; color: #333; }
+    input, textarea { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; transition: border 0.3s ease; }
+    input:focus, textarea:focus { border-color: #006699; outline: none; box-shadow: 0 0 6px rgba(0,102,153,0.2); }
+    button { padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; background: linear-gradient(135deg,#006699,#004466); color: white; cursor: pointer; transition: background 0.3s ease, transform 0.2s ease; }
+    button:hover { background: linear-gradient(135deg,#004466,#00334d); transform: translateY(-2px); }
+
     footer { background: #004466; color: white; text-align: center; padding: 20px; margin-top: 40px; }
-      /* moving strip styles */
     .strip { overflow: hidden; background: #f8fbff; border-top: 1px solid #e5eef5; border-bottom: 1px solid #e5eef5; }
     .strip-track { display: flex; gap: 24px; padding: 16px 0; will-change: transform; animation: scroll 26s linear infinite; }
     .strip:hover .strip-track { animation-play-state: paused; }
     .strip img { height: 160px; width: auto; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
     .strip .card { min-width: 260px; background: white; }
     @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+      /* Stylish form */
+    #booking { background: linear-gradient(180deg,#f7fbff 0%,#eef6fb 100%); }
+    .form-card { max-width: 720px; margin: 0 auto; background: #ffffff; padding: 28px; border-radius: 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.08), 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #e8eff6; }
+    .form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 700px) { .form-grid{ grid-template-columns: 1fr 1fr; } .form-grid .full { grid-column: 1 / -1; } }
+    .form-card label { font-weight: 600; color: #2a3b47; margin-bottom: 6px; display: block; }
+    .form-card input, .form-card textarea { width: 100%; padding: 14px 16px; border: 1px solid #d6e3ee; border-radius: 12px; background: #f9fcff; transition: box-shadow .2s ease, border-color .2s ease, transform .05s ease; font-size: 15px; }
+    .form-card textarea { min-height: 120px; resize: vertical; }
+    .form-card input:focus, .form-card textarea:focus { outline: none; border-color: #5aa6d6; box-shadow: 0 0 0 4px rgba(28,132,198,0.12); background: #fff; transform: translateY(-1px); }
+    .cta { margin-top: 8px; padding: 14px 18px; border-radius: 12px; background: linear-gradient(90deg,#0177b7,#005a8d); color: #fff; font-weight: 700; letter-spacing: .2px; border: none; cursor: pointer; box-shadow: 0 8px 16px rgba(0,91,141,.24); transition: transform .06s ease, box-shadow .2s ease; width: 100%; }
+    .cta:hover{ box-shadow: 0 10px 22px rgba(0,91,141,.30); }
+    .cta:active{ transform: translateY(1px); }
+    .helper { color: #5b6b73; font-size: 13px; margin-top: 8px; }
   </style>
   <link rel="preconnect" href="https://upload.wikimedia.org">
 </head>
 <body>
   <header>
+    <img src="6807b47c-343c-48b8-b113-ce79ac8b765e.png" alt="Clinic Logo" style="max-height:80px; display:block; margin:0 auto 10px;">
     <h1>Malwa Diagnostic Imaging</h1>
     <p>Ultrasound • Digital X-Ray • Diagnostic Excellence</p>
   </header>
@@ -61,22 +80,18 @@
     <!-- Moving strip with online images -->
     <div class="strip" aria-label="Scrolling gallery of imaging equipment">
       <div class="strip-track">
-        <!-- X-ray room (Wikimedia Commons, CC BY-SA 4.0) -->
         <a href="https://commons.wikimedia.org/wiki/File:Hospital_Radiology_Room_Philips_DigitalDiagnost_Digital_Radiography_System.jpg" target="_blank" rel="noopener">
           <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/Hospital_Radiology_Room_Philips_DigitalDiagnost_Digital_Radiography_System.jpg" alt="Digital X-ray room (Philips DigitalDiagnost)" />
         </a>
-        <!-- Ultrasound console (Wikimedia Commons, CC BY 4.0) -->
         <a href="https://commons.wikimedia.org/wiki/File:A_modern_medical_ultrasound_scanner.jpg" target="_blank" rel="noopener">
           <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/A_modern_medical_ultrasound_scanner.jpg" alt="Modern medical ultrasound scanner" />
         </a>
-        <!-- Versana Essential product page (click to view official images) -->
         <a class="card" href="https://www.gehealthcare.com/products/ultrasound/versana/versana-essential" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;padding:12px 16px;text-decoration:none;color:#00354d;border:1px solid #dbe6ee;border-radius:12px;">
           <div>
             <strong>GE Versana Essential</strong><br/>
             <small>Tap to view official images</small>
           </div>
         </a>
-        <!-- Repeat for seamless loop -->
         <a href="https://commons.wikimedia.org/wiki/File:Hospital_Radiology_Room_Philips_DigitalDiagnost_Digital_Radiography_System.jpg" target="_blank" rel="noopener">
           <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/Hospital_Radiology_Room_Philips_DigitalDiagnost_Digital_Radiography_System.jpg" alt="Digital X-ray room (Philips DigitalDiagnost)" />
         </a>
@@ -98,14 +113,31 @@
   </section>
 
   <section id="booking">
-    <h2>Book an Appointment</h2>
-    <form action="https://formspree.io/f/mayvlxyz" method="POST">
-      <input type="text" name="name" placeholder="Your Name" required>
-      <input type="email" name="email" placeholder="Your Email" required>
-      <input type="tel" name="phone" placeholder="Phone Number" required>
-      <textarea name="message" rows="4" placeholder="Your Message / Preferred Time" required></textarea>
-      <button type="submit">Submit Appointment</button>
-    </form>
+    <h2 style="text-align:center; margin-top:0">Book an Appointment</h2>
+    <div class="form-card">
+      <form action="https://formspree.io/f/mnnzybor" method="POST">
+        <div class="form-grid">
+          <div>
+            <label for="name">Your Name</label>
+            <input id="name" type="text" name="name" placeholder="e.g., Anjali Sharma" required>
+          </div>
+          <div>
+            <label for="email">Your Email</label>
+            <input id="email" type="email" name="email" placeholder="you@email.com" required>
+          </div>
+          <div>
+            <label for="phone">Phone Number</label>
+            <input id="phone" type="tel" name="phone" placeholder="+91-XXXXXXXXXX" required>
+          </div>
+          <div class="full">
+            <label for="message">Your Message</label>
+            <textarea id="message" name="message" placeholder="Preferred date & time, scan type (USG/X-Ray), any notes" required></textarea>
+          </div>
+        </div>
+        <button class="cta" type="submit">Send Appointment Request</button>
+        <div class="helper">We usually respond within a few hours during working time.</div>
+      </form>
+    </div>
   </section>
 
   <footer id="contact">
