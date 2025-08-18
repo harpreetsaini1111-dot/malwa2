@@ -1,149 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Malwa Diagnostic Imaging</title>
   <style>
-    :root { --ink:#0f172a; --muted:#64748b; --primary:#2563eb; --ring:#93c5fd; --bg:#f8fafc; }
-    *{box-sizing:border-box} body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; margin:0; background:var(--bg); color:var(--ink)}
-    header{background:var(--primary); color:#fff; padding:20px; text-align:center}
-    header h1{margin:0; font-size:1.8rem}
-    nav{margin-top:10px}
-    nav a{color:#fff; text-decoration:none; margin:0 10px; font-weight:500}
-    section{padding:40px 16px; max-width:960px; margin:auto}
-    .card{background:#fff; border-radius:16px; padding:24px; box-shadow:0 8px 30px rgba(2,6,23,.08); margin-bottom:30px}
-    h2{margin-top:0}
-    form{display:grid; grid-template-columns:repeat(6,1fr); gap:14px}
-    label{font-size:.9rem; color:var(--muted)}
-    input, select, textarea{width:100%; padding:12px 14px; border:1px solid #e5e7eb; border-radius:10px; font-size:1rem; outline:none; background:#fff}
-    input:focus, select:focus, textarea:focus{border-color:var(--primary); box-shadow:0 0 0 4px var(--ring)}
-    .col-3{grid-column:span 3}
-    .col-2{grid-column:span 2}
-    .col-1{grid-column:span 1}
-    .col-6{grid-column:span 6}
-    .btn{appearance:none; border:none; background:var(--primary); color:#fff; padding:12px 16px; border-radius:10px; font-weight:600; cursor:pointer}
-    .btn[disabled]{opacity:.55; cursor:not-allowed}
-    .status{margin-top:12px; font-weight:600}
-    .ok{color:#166534}
-    .err{color:#991b1b}
-    footer{background:#f1f5f9; padding:20px; text-align:center; font-size:.85rem; color:var(--muted)}
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    header { background: #004466; color: white; padding: 20px; text-align: center; }
+    nav { background: #006699; padding: 10px; text-align: center; }
+    nav a { color: white; margin: 0 15px; text-decoration: none; }
+    section { padding: 40px; }
+    .services { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+    .card { background: #f2f2f2; padding: 20px; border-radius: 8px; width: 250px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .gallery-strip { display: flex; overflow-x: auto; gap: 20px; padding: 20px; scroll-behavior: smooth; }
+    .gallery-strip img { flex: 0 0 auto; width: 350px; height: auto; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    form { max-width: 500px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
+    input, textarea, button { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    button { background: #006699; color: white; border: none; cursor: pointer; }
+    button:hover { background: #004466; }
+    footer { background: #004466; color: white; text-align: center; padding: 20px; margin-top: 40px; }
+      /* moving strip styles */
+    .strip { overflow: hidden; background: #f8fbff; border-top: 1px solid #e5eef5; border-bottom: 1px solid #e5eef5; }
+    .strip-track { display: flex; gap: 24px; padding: 16px 0; will-change: transform; animation: scroll 26s linear infinite; }
+    .strip:hover .strip-track { animation-play-state: paused; }
+    .strip img { height: 160px; width: auto; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+    .strip .card { min-width: 260px; background: white; }
+    @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   </style>
+  <link rel="preconnect" href="https://upload.wikimedia.org">
 </head>
 <body>
   <header>
     <h1>Malwa Diagnostic Imaging</h1>
-    <nav>
-      <a href="#about">About</a>
-      <a href="#services">Services</a>
-      <a href="#booking">Book Appointment</a>
-      <a href="#contact">Contact</a>
-    </nav>
+    <p>Ultrasound • Digital X-Ray • Diagnostic Excellence</p>
   </header>
 
-  <section id="about" class="card">
-    <h2>About Us</h2>
-    <p>Malwa Diagnostic Imaging offers state-of-the-art diagnostic services including Ultrasound, Digital X-ray, Doppler studies, and advanced obstetric scans. Our center is committed to accuracy, patient comfort, and timely reporting under the guidance of <strong>Dr. Harpreet Singh Saini, DMRD, DNB</strong>.</p>
-  </section>
+  <nav>
+    <a href="#services">Services</a>
+    <a href="#gallery">Gallery</a>
+    <a href="#booking">Book Appointment</a>
+    <a href="#contact">Contact</a>
+  </nav>
 
-  <section id="services" class="card">
+  <section id="services">
     <h2>Our Services</h2>
-    <ul>
-      <li>Ultrasound (USG)</li>
-      <li>Digital X-Ray</li>
-      <li>Level II Obstetric Ultrasound</li>
-      <li>Doppler Studies</li>
-    </ul>
+    <div class="services">
+      <div class="card">
+        <h3>Ultrasound (USG)</h3>
+        <p>Advanced ultrasound for abdomen, obstetrics, musculoskeletal and vascular imaging.</p>
+      </div>
+      <div class="card">
+        <h3>Digital X-Ray</h3>
+        <p>High quality digital radiography with fast reporting and clarity.</p>
+      </div>
+    </div>
   </section>
 
-  <section id="booking" class="card">
+  <section id="gallery">
+    <h2>USG & Digital X-Ray</h2>
+    <!-- Moving strip with online images -->
+    <div class="strip" aria-label="Scrolling gallery of imaging equipment">
+      <div class="strip-track">
+        <!-- X-ray room (Wikimedia Commons, CC BY-SA 4.0) -->
+        <a href="https://commons.wikimedia.org/wiki/File:Hospital_Radiology_Room_Philips_DigitalDiagnost_Digital_Radiography_System.jpg" target="_blank" rel="noopener">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/Hospital_Radiology_Room_Philips_DigitalDiagnost_Digital_Radiography_System.jpg" alt="Digital X-ray room (Philips DigitalDiagnost)" />
+        </a>
+        <!-- Ultrasound console (Wikimedia Commons, CC BY 4.0) -->
+        <a href="https://commons.wikimedia.org/wiki/File:A_modern_medical_ultrasound_scanner.jpg" target="_blank" rel="noopener">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/A_modern_medical_ultrasound_scanner.jpg" alt="Modern medical ultrasound scanner" />
+        </a>
+        <!-- Versana Essential product page (click to view official images) -->
+        <a class="card" href="https://www.gehealthcare.com/products/ultrasound/versana/versana-essential" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;padding:12px 16px;text-decoration:none;color:#00354d;border:1px solid #dbe6ee;border-radius:12px;">
+          <div>
+            <strong>GE Versana Essential</strong><br/>
+            <small>Tap to view official images</small>
+          </div>
+        </a>
+        <!-- Repeat for seamless loop -->
+        <a href="https://commons.wikimedia.org/wiki/File:Hospital_Radiology_Room_Philips_DigitalDiagnost_Digital_Radiography_System.jpg" target="_blank" rel="noopener">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/Hospital_Radiology_Room_Philips_DigitalDiagnost_Digital_Radiography_System.jpg" alt="Digital X-ray room (Philips DigitalDiagnost)" />
+        </a>
+        <a href="https://commons.wikimedia.org/wiki/File:A_modern_medical_ultrasound_scanner.jpg" target="_blank" rel="noopener">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/A_modern_medical_ultrasound_scanner.jpg" alt="Modern medical ultrasound scanner" />
+        </a>
+        <a class="card" href="https://www.gehealthcare.com/products/ultrasound/versana/versana-essential" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;padding:12px 16px;text-decoration:none;color:#00354d;border:1px solid #dbe6ee;border-radius:12px;">
+          <div>
+            <strong>GE Versana Essential</strong><br/>
+            <small>Tap to view official images</small>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <p style="margin-top:10px;font-size:12px;color:#5b6b73;">
+      Image credits: X‑ray room by Ptrump16 (CC BY‑SA 4.0) and Ultrasound scanner by Harrison Keely (CC BY 4.0). Official Versana Essential images open on GE HealthCare site.
+    </p>
+  </section>
+
+  <section id="booking">
     <h2>Book an Appointment</h2>
-    <form id="booking-form" action="https://formspree.io/f/REPLACE_WITH_YOUR_FORM_ID" method="POST">
-      <div class="col-3">
-        <label for="name">Full Name *</label>
-        <input id="name" name="name" type="text" required />
-      </div>
-      <div class="col-3">
-        <label for="phone">Phone *</label>
-        <input id="phone" name="phone" type="tel" pattern="[0-9]{10}" required />
-      </div>
-      <div class="col-3">
-        <label for="service">Service *</label>
-        <select id="service" name="service" required>
-          <option value="">Select…</option>
-          <option>Ultrasound</option>
-          <option>Digital X-Ray</option>
-          <option>USG Level II (Obstetric)</option>
-          <option>Doppler</option>
-        </select>
-      </div>
-      <div class="col-2">
-        <label for="date">Preferred Date *</label>
-        <input id="date" name="date" type="date" required />
-      </div>
-      <div class="col-1">
-        <label for="time">Time *</label>
-        <input id="time" name="time" type="time" required />
-      </div>
-      <div class="col-6">
-        <label for="notes">Message (optional)</label>
-        <textarea id="notes" name="message" rows="4"></textarea>
-      </div>
-
-      <!-- ✅ Submit Button (added here) -->
-      <div class="col-6">
-        <button id="submitBtn" class="btn" type="submit">Submit Booking</button>
-        <div id="status" class="status" aria-live="polite"></div>
-      </div>
-
-      <input type="hidden" name="form_name" value="Malwa Booking" />
-      <input type="text" name="_gotcha" style="display:none" />
+    <form action="https://formspree.io/f/mayvlxyz" method="POST">
+      <input type="text" name="name" placeholder="Your Name" required>
+      <input type="email" name="email" placeholder="Your Email" required>
+      <input type="tel" name="phone" placeholder="Phone Number" required>
+      <textarea name="message" rows="4" placeholder="Your Message / Preferred Time" required></textarea>
+      <button type="submit">Submit Appointment</button>
     </form>
   </section>
 
-  <section id="contact" class="card">
-    <h2>Contact Us</h2>
-    <p>📍 New Vijay Nagar, near Tajpur Road, Ludhiana — 141007</p>
-    <p>📞 <a href="tel:+918198800260">+91 81988 00260</a></p>
-    <p>📧 <a href="mailto:astradiagnosticsxray@gmail.com">astradiagnosticsxray@gmail.com</a></p>
-  </section>
-
-  <footer>
-    © 2025 Malwa Diagnostic Imaging. All rights reserved.
+  <footer id="contact">
+    <p><strong>Address:</strong> Malwa Diagnostic Imaging, New Vijay Nagar, Near Tajpur Road, Ludhiana - 141007</p>
+    <p><strong>Phone:</strong> +91-8198800260 | <strong>Email:</strong> astradiagnosticsxray@gmail.com</p>
+    <p>&copy; 2025 Malwa Diagnostic Imaging. All Rights Reserved.</p>
   </footer>
-
-  <script>
-    (function(){
-      const form = document.getElementById('booking-form');
-      const status = document.getElementById('status');
-      const btn = document.getElementById('submitBtn');
-
-      function setStatus(msg, ok=true){
-        status.textContent = msg; status.className = 'status ' + (ok ? 'ok' : 'err');
-      }
-
-      form.addEventListener('submit', async (e)=>{
-        e.preventDefault();
-        if(!form.reportValidity()) return;
-        btn.disabled = true; setStatus('Submitting…');
-        try{
-          const data = new FormData(form);
-          const res = await fetch(form.action, { method: 'POST', body: data, headers: { 'Accept':'application/json' } });
-          if(res.ok){
-            form.reset();
-            setStatus('Thank you! Your booking request has been sent. We will confirm shortly.', true);
-          } else {
-            const out = await res.json().catch(()=>({}));
-            setStatus(out.error || 'Could not send. Please try again or WhatsApp us.', false);
-          }
-        } catch(err){
-          setStatus('Network error. Please try again or WhatsApp us.', false);
-        } finally {
-          btn.disabled = false;
-        }
-      });
-    })();
-  </script>
 </body>
 </html>
+
 
