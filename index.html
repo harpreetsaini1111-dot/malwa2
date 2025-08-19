@@ -180,6 +180,17 @@ fetch('https://api.countapi.xyz/hit/malwaimaging.co.in/visits')
     <p><strong>Phone:</strong> +91-8198800260 | <strong>Email:</strong> astradiagnosticsxray@gmail.com</p>
     <p>&copy; 2025 Malwa Diagnostic Imaging. All Rights Reserved.</p>
   </footer>
+<div style="font-size:18px; font-weight:bold; margin-top:20px;">
+    Visitors: <span id="visitor-count">0</span>
+</div>
+
+<script>
+fetch('https://api.countapi.xyz/hit/malwaimaging.co.in/visits')
+.then(response => response.json())
+.then(data => {
+    document.getElementById('visitor-count').innerText = data.value;
+});
+</script>
 
   <!-- Floating WhatsApp button with pre-filled message -->
   <a class="fab" href="https://wa.me/918198800260?text=Hello%20Malwa%20Diagnostic%20Imaging%2C%20I%20would%20like%20to%20book%20an%20appointment." target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp">
