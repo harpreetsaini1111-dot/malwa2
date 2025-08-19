@@ -180,38 +180,12 @@ fetch('https://api.countapi.xyz/hit/malwaimaging.co.in/visits')
     <p><strong>Phone:</strong> +91-8198800260 | <strong>Email:</strong> astradiagnosticsxray@gmail.com</p>
     <p>&copy; 2025 Malwa Diagnostic Imaging. All Rights Reserved.</p>
   </footer>
-<div id="vis-wrap" style="font-size:18px;font-weight:bold;margin-top:20px;">
-  Visitors: <span id="visitor-count">loading…</span>
+<div style="margin-top:16px;">
+  <img
+    src="https://profile-counter.glitch.me/malwaimaging-co-in/count.svg"
+    alt="Visitors"
+  />
 </div>
-
-<script>
-(function () {
-  var el  = document.getElementById('visitor-count');
-  var box = document.getElementById('vis-wrap');
-
-  // Use your domain as the namespace; safe for any site
-  var ns  = encodeURIComponent(location.hostname || 'malwaimaging.co.in');
-  var key = 'total';
-
-  fetch('https://api.countapi.xyz/hit/' + ns + '/' + key, { cache: 'no-store' })
-    .then(function (r) { return r.json(); })
-    .then(function (d) {
-      if (d && typeof d.value === 'number') {
-        el.textContent = d.value;
-      } else {
-        throw new Error('Malformed CountAPI response');
-      }
-    })
-    .catch(function (err) {
-      console.error('Visitor counter error:', err);
-      // Fallback: always-visible image badge
-      box.innerHTML =
-        '<a href="https://hits.seeyoufarm.com">' +
-        '<img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fmalwaimaging.co.in&title=Visitors" alt="Visitors" />' +
-        '</a>';
-    });
-})();
-</script>
 
 
 
