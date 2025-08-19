@@ -11,6 +11,17 @@
   </script>
 </head>
 
+<div style="font-size:18px; font-weight:bold; margin-top:20px;">
+    Visitors: <span id="visitor-count">0</span>
+</div>
+
+<script>
+fetch('https://api.countapi.xyz/hit/malwaimaging.co.in/visits')
+.then(response => response.json())
+.then(data => {
+    document.getElementById('visitor-count').innerText = data.value;
+});
+</script>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
