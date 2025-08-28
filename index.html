@@ -85,7 +85,13 @@ fetch('https://api.countapi.xyz/hit/malwaimaging.co.in/visits')
   <!-- Corrected favicon -->
   <link rel="icon" href="logo.png">
 </head>
-<body>
+<body><!-- Place this snippet inside your existing index.html body where you want the payment QR to appear -->
+<div style="text-align:center; padding:40px 20px;">
+  <h2 style="font-size:24px; margin-bottom:16px; color:#222;">Scan to Pay</h2>
+  <img src="qr.jpeg" alt="Payment QR Code" style="max-width:280px; width:100%; border:2px solid #ccc; border-radius:12px; padding:10px; background:#fafafa;">
+  <p style="margin-top:12px; color:#444; font-size:14px;">Use your UPI / Banking app to scan and complete the payment.</p>
+</div>
+
   <header>
     <div class="container inner">
       <img src="logo.png" alt="Malwa Diagnostic Imaging Logo">
