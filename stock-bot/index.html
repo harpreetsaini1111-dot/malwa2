@@ -221,6 +221,49 @@
 
     </section>
   
+<section id="contact" style="max-width:900px;margin:3rem auto;padding:1.5rem;border:1px solid #e5e7eb;border-radius:16px">
+  <h2 style="margin:0 0 .5rem 0;font-size:1.75rem">Contact</h2>
+  <p style="margin:.25rem 0 1rem 0;color:#374151">
+    Questions, team licenses, or support? Send a message and I’ll get back soon.
+  </p>
+
+  <!-- Formspree form -->
+  <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" style="display:grid;gap:.75rem">
+    <!-- Hidden anti-spam -->
+    <input type="text" name="_gotcha" style="display:none">
+
+    <div style="display:grid;gap:.5rem">
+      <label for="name" style="font-weight:600">Name</label>
+      <input id="name" name="name" type="text" required
+             style="padding:.6rem .8rem;border:1px solid #e5e7eb;border-radius:10px">
+    </div>
+
+    <div style="display:grid;gap:.5rem">
+      <label for="email" style="font-weight:600">Email</label>
+      <input id="email" name="email" type="email" required
+             style="padding:.6rem .8rem;border:1px solid #e5e7eb;border-radius:10px">
+    </div>
+
+    <div style="display:grid;gap:.5rem">
+      <label for="message" style="font-weight:600">Message</label>
+      <textarea id="message" name="message" rows="5" required
+                style="padding:.6rem .8rem;border:1px solid #e5e7eb;border-radius:10px"></textarea>
+    </div>
+
+    <!-- Optional subject + redirect -->
+    <input type="hidden" name="_subject" value="Stock-Bot Website — New Contact">
+    <input type="hidden" name="_redirect" value="https://www.malwaimaging.co.in/stock-bot/?sent=1">
+
+    <button type="submit"
+            style="cursor:pointer;padding:.75rem 1rem;border-radius:9999px;border:1px solid #111827;font-weight:700">
+      Send message
+    </button>
+
+    <p style="margin:.5rem 0 0 0;color:#6b7280;font-size:.9rem">
+      We only use your details to reply. No spam.
+    </p>
+  </form>
+</section>
 
 
     <!-- FAQ -->
