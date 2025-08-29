@@ -282,9 +282,9 @@
     Questions, team licenses, or support? Send a message and I’ll get back soon.
   </p>
 
-  <!-- Formspree form -->
+  <!-- Connected to your Formspree endpoint -->
   <form action="https://formspree.io/f/xdklagrk" method="POST" style="display:grid;gap:.75rem">
-    <!-- Hidden anti-spam -->
+    <!-- Honeypot (spam trap) -->
     <input type="text" name="_gotcha" style="display:none">
 
     <div style="display:grid;gap:.5rem">
@@ -300,12 +300,24 @@
     </div>
 
     <div style="display:grid;gap:.5rem">
+      <label for="topic" style="font-weight:600">Topic</label>
+      <select id="topic" name="topic" required
+              style="padding:.6rem .8rem;border:1px solid #e5e7eb;border-radius:10px">
+        <option value="">Choose…</option>
+        <option>Pre-sales</option>
+        <option>Technical support</option>
+        <option>Billing</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div style="display:grid;gap:.5rem">
       <label for="message" style="font-weight:600">Message</label>
       <textarea id="message" name="message" rows="5" required
                 style="padding:.6rem .8rem;border:1px solid #e5e7eb;border-radius:10px"></textarea>
     </div>
 
-    <!-- Optional subject + redirect -->
+    <!-- Optional: subject + redirect after success -->
     <input type="hidden" name="_subject" value="Stock-Bot Website — New Contact">
     <input type="hidden" name="_redirect" value="https://www.malwaimaging.co.in/stock-bot/?sent=1">
 
@@ -319,6 +331,8 @@
     </p>
   </form>
 </section>
+
+
 
 
   <footer class="section">
