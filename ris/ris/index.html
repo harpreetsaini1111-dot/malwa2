@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Malwa RIS</title>
+
+<!-- Quill -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<style>
+body{
+    font-family:Segoe UI, Arial;
+    background:#f3f6fb;
+    padding:20px;
+}
+.container{
+    background:#fff;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+.grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin-bottom:10px;
+}
+input, select{
+    padding:8px;
+    border-radius:6px;
+    border:1px solid #cbd5e1;
+}
+#editor{
+    height:420px;
+    background:#fff;
+}
+button{
+    padding:12px 18px;
+    border:none;
+    border-radius:6px;
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.btn-load{background:#0f766e}
+.btn-save{background:#16a34a}
+.btn-word{background:#2563eb}
+.btn-pdf{background:#dc2626}
+.btn-fetch{background:#7c3aed}
+.btn-upload{background:#ea580c}
+
+.actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:10px 0;
+}
+.fetch-box{
+    display:flex;
+    gap:10px;
+    margin:15px 0;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+th, td{
+    border:1px solid #cbd5e1;
+    padding:6px;
+    font-size:13px;
+}
+th{
+    background:#e5e7eb;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- PATIENT DETAILS -->
+<div class="grid">
+    <input id="patientName" placeholder="Patient Name">
+    <input id="age" placeholder="Age">
+    <select id="gender">
+        <option>Male</option>
+        <option>Female</option>
+    </select>
+    <input id="refDoctor" placeholder="Ref Doctor">
+</div>
+
+<div class="grid">
+    <input id="patientId" placeholder="UHID">
+    <select id="modality"></select>
+    <select id="templateSelect"></select>
+    <input id="searchBox" placeholder="Search Name / UHID">
+</div>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+    <button class="ql-bold"></button>
+    <button class="ql-italic"></button>
+    <button class="ql-underline"></button>
+    <button class="ql-list" value="ordered"></button>
+    <button class="ql-list" value="bullet"></button>
+</div>
+
+<!-- EDITOR -->
+<div id="editor"></div>
+
+<!-- ACTION BUTTONS -->
+<div class="actions">
+    <button class="btn-load" onclick="loadTemplate()">Load Template</button>
+    <button class="btn-save" onclick="saveReport()">Save Report</button>
+    <button class="btn-word" onclick="downloadWord()">Download Word</button>
+    <button class="btn-pdf" onclick="downloadPDF()">Download PDF</button>
+</div>
+
+<!-- FETCH SAVED REPORTS -->
+<div class="fetch-box">
+    <input placeholder="Search saved reports"
+           onkeyup="searchBox.value=this.value">
+    <button class="btn-fetch" onclick="fetchReports()">FETCH SAVED REPORTS</button>
+</div>
+
+<table>
+<thead>
+<tr>
+    <th>ID</th>
+    <th>Patient Name</th>
+    <th>UHID</th>
+    <th>Modality</th>
+    <th>Date</th>
+    <th>Download</th>
+</tr>
+</thead>
+<tbody id="reportTable"></tbody>
+</table>
+
+<hr>
+
+<input type="file" id="uploadFile">
+<button class="btn-upload" onclick="uploadReport()">Upload Word / PDF</button>
+
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+/* 🔴 CHANGE THIS TO YOUR PC IP */
+const API_BASE = "http://YOUR_PC_IP:5000";
+
+/* ================= EDITOR ================= */
+const quill = new Quill('#editor', {
+    theme: 'snow',
+    modules: { toolbar: '#toolbar' }
+});
+
+let templateData = {};
+let lastSavedReportId = null;
+
+/* ================= LOAD TEMPLATES ================= */
+fetch(API_BASE + "/get_templates")
+.then(r => r.json())
+.then(d => {
+    templateData = d;
+    modality.innerHTML = "";
+    for (let m in d) {
+        modality.innerHTML += `<option>${m}</option>`;
+    }
+    updateTemplates();
+});
+
+modality.onchange = updateTemplates;
+
+function updateTemplates(){
+    templateSelect.innerHTML = "";
+    (templateData[modality.value] || []).forEach(t => {
+        templateSelect.innerHTML += `<option>${t}</option>`;
+    });
+}
+
+/* ================= ACTIONS ================= */
+function loadTemplate(){
+    fetch(API_BASE + "/load_template", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+            modality: modality.value,
+            name: templateSelect.value
+        })
+    })
+    .then(r => r.json())
+    .then(d => quill.root.innerHTML = d.content);
+}
+
+function saveReport(){
+    fetch(API_BASE + "/save_report", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+            patient_name: patientName.value,
+            uhid: patientId.value,
+            age: age.value,
+            gender: gender.value,
+            ref_doctor: refDoctor.value,
+            modality: modality.value,
+            template: templateSelect.value,
+            report_html: quill.root.innerHTML
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        lastSavedReportId = d.id;
+        alert("Report saved successfully");
+    });
+}
+
+function downloadWord(){
+    if(!lastSavedReportId){
+        alert("Save report first");
+        return;
+    }
+    window.open(API_BASE + "/download_word/" + lastSavedReportId);
+}
+
+function downloadPDF(){
+    if(!lastSavedReportId){
+        alert("Save report first");
+        return;
+    }
+    window.open(API_BASE + "/download_pdf/" + lastSavedReportId);
+}
+
+function fetchReports(){
+    fetch(API_BASE + "/get_reports?q=" + searchBox.value)
+    .then(r => r.json())
+    .then(d => {
+        reportTable.innerHTML = "";
+        d.forEach(r => {
+            reportTable.innerHTML += `
+            <tr>
+                <td>${r[0]}</td>
+                <td>${r[1]}</td>
+                <td>${r[2]}</td>
+                <td>${r[3]}</td>
+                <td>${r[4]}</td>
+                <td>
+                    <a href="${API_BASE}/download_word/${r[0]}" target="_blank">Word</a> |
+                    <a href="${API_BASE}/download_pdf/${r[0]}" target="_blank">PDF</a>
+                </td>
+            </tr>`;
+        });
+    });
+}
+
+function uploadReport(){
+    const fd = new FormData();
+    fd.append("file", uploadFile.files[0]);
+
+    fetch(API_BASE + "/upload_report", {
+        method: "POST",
+        body: fd
+    })
+    .then(() => alert("File uploaded"));
+}
+</script>
+
+</body>
+</html>
