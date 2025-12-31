@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Malwa RIS – Word Workflow</title>
+<title>Malwa RIS – Word Editor</title>
+
+<!-- Quill Editor -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
 <style>
 body{
@@ -10,39 +14,32 @@ body{
     background:#f3f6fb;
     padding:20px;
 }
-
 .container{
     background:#fff;
     padding:20px;
     border-radius:10px;
+    max-width:1100px;
+    margin:auto;
 }
-
-h2{margin-bottom:15px}
-h3{
-    margin-top:25px;
-    margin-bottom:10px;
-    color:#374151;
-}
+h2{margin-bottom:10px}
+h3{margin-top:25px;color:#374151}
 
 .grid{
     display:grid;
     grid-template-columns:repeat(4,1fr);
     gap:10px;
 }
-
 input, select{
     padding:8px;
-    border:1px solid #ccc;
     border-radius:6px;
+    border:1px solid #ccc;
 }
-
 .actions{
     margin-top:10px;
     display:flex;
     gap:10px;
     flex-wrap:wrap;
 }
-
 button{
     padding:10px 16px;
     border:none;
@@ -51,24 +48,15 @@ button{
     font-weight:600;
     cursor:pointer;
 }
-
 .btn-blue{background:#2563eb}
-.btn-red{background:#dc2626}
 .btn-green{background:#16a34a}
+.btn-purple{background:#7c3aed}
 
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:15px;
+#editor{
+    height:420px;
+    background:#fff;
+    margin-top:10px;
 }
-
-th, td{
-    border:1px solid #ccc;
-    padding:8px;
-    font-size:13px;
-}
-
-th{background:#f1f5f9}
 </style>
 </head>
 
@@ -76,109 +64,120 @@ th{background:#f1f5f9}
 
 <div class="container">
 
-<h2>Malwa RIS – Word Workflow</h2>
+<h2>Malwa RIS – Word Upload → Edit → Save</h2>
 
-<!-- SECTION 1 -->
-<h3>1. Patient & Template</h3>
+<!-- PATIENT DETAILS -->
+<h3>1. Patient Details</h3>
 <div class="grid">
     <input id="patientName" placeholder="Patient Name">
     <input id="uhid" placeholder="UHID">
-    <select id="modality" onchange="loadTemplates()">
+    <select id="modality">
         <option>CT</option>
         <option>MRI</option>
         <option>USG</option>
         <option>XRAY</option>
     </select>
-    <select id="templateSelect"></select>
+    <input id="study" placeholder="Study / Template Name">
 </div>
 
+<!-- WORD UPLOAD -->
+<h3>2. Upload Word (.docx)</h3>
 <div class="actions">
-    <button class="btn-blue" onclick="downloadTemplate()">Download Template</button>
+    <input type="file" id="wordFile" accept=".docx">
+    <button class="btn-blue" onclick="uploadWord()">Load Word into Editor</button>
 </div>
 
-<!-- SECTION 2 -->
-<h3>2. Upload Finished Report (Word)</h3>
+<!-- EDITOR -->
+<h3>3. Edit Report</h3>
+<div id="toolbar">
+    <button class="ql-bold"></button>
+    <button class="ql-italic"></button>
+    <button class="ql-underline"></button>
+    <button class="ql-list" value="ordered"></button>
+    <button class="ql-list" value="bullet"></button>
+</div>
+
+<div id="editor"></div>
+
+<!-- SAVE / DOWNLOAD -->
+<h3>4. Save & Download</h3>
 <div class="actions">
-    <input type="file" id="reportFile">
-    <button class="btn-red" onclick="uploadReport()">Upload Finished Report</button>
+    <button class="btn-green" onclick="saveReport()">Save Report</button>
+    <button class="btn-purple" onclick="downloadWord()">Download Word</button>
 </div>
-
-<!-- SECTION 3 -->
-<h3>3. Saved Reports</h3>
-<div class="actions">
-    <button class="btn-green" onclick="fetchReports()">Fetch Saved Reports</button>
-</div>
-
-<table>
-<thead>
-<tr>
-    <th>Modality</th>
-    <th>File</th>
-    <th>Download</th>
-</tr>
-</thead>
-<tbody id="reportTable"></tbody>
-</table>
 
 </div>
 
 <script>
-function loadTemplates(){
-    fetch("/api/templates/" + modality.value)
-    .then(r=>r.json())
-    .then(d=>{
-        templateSelect.innerHTML="";
-        d.forEach(t=>templateSelect.innerHTML+=`<option>${t}</option>`);
-    });
-}
+/* 🔴 CHANGE THIS TO YOUR RENDER BACKEND URL */
+const API_BASE = "https://YOUR-APP-NAME.onrender.com";
 
-function downloadTemplate(){
-    if(!templateSelect.value){
-        alert("Select a template first");
-        return;
-    }
-    window.open(`/api/template/${modality.value}/${templateSelect.value}`);
-}
+/* Editor */
+const quill = new Quill('#editor', {
+    theme:'snow',
+    modules:{ toolbar:'#toolbar' }
+});
 
-function uploadReport(){
-    if(!reportFile.files[0]){
-        alert("Select a Word file first");
+let currentReportId = null;
+
+/* Upload DOCX → Server → HTML */
+function uploadWord(){
+    if(!wordFile.files[0]){
+        alert("Please select a Word (.docx) file");
         return;
     }
 
     const fd = new FormData();
-    fd.append("file", reportFile.files[0]);
-    fd.append("modality", modality.value);
-    fd.append("uhid", uhid.value);
-    fd.append("patient_name", patientName.value);
+    fd.append("file", wordFile.files[0]);
 
-    fetch("/api/upload",{method:"POST",body:fd})
-    .then(r=>r.json())
-    .then(()=>alert("Report uploaded successfully"));
-}
-
-function fetchReports(){
-    fetch("/api/reports")
+    fetch(API_BASE + "/api/word_to_html", {
+        method:"POST",
+        body:fd
+    })
     .then(r=>r.json())
     .then(d=>{
-        reportTable.innerHTML="";
-        d.forEach(r=>{
-            reportTable.innerHTML+=`
-            <tr>
-                <td>${r.modality}</td>
-                <td>${r.filename}</td>
-                <td>
-                    <a href="/api/report/${r.modality}/${r.filename}">Download</a>
-                </td>
-            </tr>`;
-        });
+        quill.root.innerHTML = d.html;
+    })
+    .catch(()=>{
+        alert("Failed to load Word file");
     });
 }
 
-loadTemplates();
+/* Save HTML → DOCX */
+function saveReport(){
+    fetch(API_BASE + "/api/save_report", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            patient_name: patientName.value,
+            uhid: uhid.value,
+            modality: modality.value,
+            study: study.value,
+            html: quill.root.innerHTML
+        })
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        currentReportId = d.id;
+        alert("Report saved successfully");
+    })
+    .catch(()=>{
+        alert("Failed to save report");
+    });
+}
+
+/* Download Word */
+function downloadWord(){
+    if(!currentReportId){
+        alert("Please save the report first");
+        return;
+    }
+    window.open(API_BASE + "/api/download_word/" + currentReportId);
+}
 </script>
 
 </body>
 </html>
+
 
 
