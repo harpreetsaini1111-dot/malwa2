@@ -32,7 +32,7 @@ input, select{
     border:1px solid #cbd5e1;
 }
 #editor{
-    height:400px;
+    height:380px;
     background:#fff;
 }
 button{
@@ -45,12 +45,12 @@ button{
 }
 .btn-save{background:#16a34a}
 .btn-fetch{background:#2563eb}
-.btn-pdf{background:#dc2626}
+.btn-clear{background:#6b7280}
 
 .actions{
     display:flex;
     gap:10px;
-    margin:10px 0;
+    margin:12px 0;
 }
 
 table{
@@ -88,12 +88,17 @@ th{
 
 <div class="grid">
     <input id="patientId" placeholder="UHID">
-    <input id="modality" placeholder="Modality (CT / MRI / USG)">
+    <select id="modality">
+        <option value="CT">CT</option>
+        <option value="MRI">MRI</option>
+        <option value="USG">USG</option>
+        <option value="XRAY">XRAY</option>
+    </select>
     <input disabled>
     <input disabled>
 </div>
 
-<!-- TOOLBAR -->
+<!-- QUILL TOOLBAR -->
 <div id="toolbar">
     <button class="ql-bold"></button>
     <button class="ql-italic"></button>
@@ -109,7 +114,7 @@ th{
 <div class="actions">
     <button class="btn-save" onclick="saveReport()">Save Report</button>
     <button class="btn-fetch" onclick="fetchReports()">Fetch Saved Reports</button>
-    <button class="btn-pdf" onclick="window.print()">Print / Save PDF</button>
+    <button class="btn-clear" onclick="clearForm()">Clear</button>
 </div>
 
 <!-- SAVED REPORTS TABLE -->
@@ -130,7 +135,7 @@ th{
 
 <script>
 /* ================= CONFIG ================= */
-const API_BASE = ""; // SAME SERVER (Render)
+const API_BASE = ""; // same Render server
 
 /* ================= EDITOR ================= */
 const quill = new Quill('#editor', {
@@ -139,20 +144,22 @@ const quill = new Quill('#editor', {
 });
 
 /* ================= SAVE REPORT ================= */
-function saveReport() {
+function saveReport(){
+    const payload = {
+        patient_name: patientName.value,
+        uhid: patientId.value,
+        age: age.value,
+        gender: gender.value,
+        ref_doctor: refDoctor.value,
+        modality: modality.value,
+        report_html: quill.root.innerHTML,
+        date: new Date().toLocaleString()
+    };
+
     fetch(API_BASE + "/api/save", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
-            patient_name: patientName.value,
-            uhid: patientId.value,
-            age: age.value,
-            gender: gender.value,
-            ref_doctor: refDoctor.value,
-            modality: modality.value,
-            report_html: quill.root.innerHTML,
-            date: new Date().toLocaleString()
-        })
+        body: JSON.stringify(payload)
     })
     .then(r => r.json())
     .then(() => alert("Report saved successfully"))
@@ -163,7 +170,7 @@ function saveReport() {
 }
 
 /* ================= FETCH REPORTS ================= */
-function fetchReports() {
+function fetchReports(){
     fetch(API_BASE + "/api/get")
     .then(r => r.json())
     .then(data => {
@@ -174,7 +181,7 @@ function fetchReports() {
                 <td>${i+1}</td>
                 <td>${r.patient_name || ""}</td>
                 <td>${r.uhid || ""}</td>
-                <td>${r.modality || ""}</td>
+                <td>${r._modality || ""}</td>
                 <td>${r.date || ""}</td>
             </tr>`;
         });
@@ -184,8 +191,18 @@ function fetchReports() {
         alert("Fetch failed");
     });
 }
+
+/* ================= CLEAR ================= */
+function clearForm(){
+    patientName.value = "";
+    patientId.value = "";
+    age.value = "";
+    refDoctor.value = "";
+    quill.root.innerHTML = "";
+}
 </script>
 
 </body>
 </html>
+
 
