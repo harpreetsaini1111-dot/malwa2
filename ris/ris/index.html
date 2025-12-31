@@ -4,13 +4,12 @@
 <meta charset="UTF-8">
 <title>Malwa RIS</title>
 
-<!-- Quill -->
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
 <style>
 body{
-    font-family:Segoe UI, Arial, sans-serif;
+    font-family:Segoe UI, Arial;
     background:#f3f6fb;
     padding:20px;
 }
@@ -20,9 +19,6 @@ body{
     border-radius:10px;
     max-width:1200px;
     margin:auto;
-}
-h2{
-    margin-bottom:15px;
 }
 .grid{
     display:grid;
@@ -46,7 +42,6 @@ button{
 .blue{background:#2563eb}
 .green{background:#16a34a}
 .orange{background:#ea580c}
-.red{background:#dc2626}
 
 #editor{
     height:380px;
@@ -58,7 +53,6 @@ button{
     margin-top:10px;
     display:flex;
     gap:10px;
-    flex-wrap:wrap;
 }
 
 table{
@@ -105,13 +99,13 @@ th{background:#f1f5f9}
 <!-- EDITOR -->
 <div id="editor"></div>
 
-<!-- ACTION BUTTONS -->
+<!-- ACTIONS -->
 <div class="actions">
     <button class="green" onclick="saveReport()">Save Report</button>
     <button class="blue" onclick="fetchReports()">Fetch Reports</button>
 </div>
 
-<!-- SAVED REPORTS -->
+<!-- REPORT LIST -->
 <table>
 <thead>
 <tr>
@@ -130,39 +124,62 @@ th{background:#f1f5f9}
 
 const API_BASE = "https://malwa-ris-backend.onrender.com";
 
-/* change this ONLY if your repo name/path changes */
-const TEMPLATE_BASE =
-"https://raw.githubusercontent.com/harpreetsaini1111-dot/malwa2/main/ris/templates/";
+/* GitHub repo info — PATH FIXED FOR ris/ris */
+const GITHUB_OWNER = "harpreetsaini1111-dot";
+const GITHUB_REPO  = "malwa2";
+const TEMPLATE_ROOT = "ris/ris/templates";
 
 /* ================= EDITOR ================= */
 
 const quill = new Quill("#editor", { theme: "snow" });
 
-/* ================= LOAD TEMPLATE LIST ================= */
+/* ================= LOAD TEMPLATES FROM GITHUB ================= */
 
-fetch(TEMPLATE_BASE + "templates.json")
-.then(r => r.json())
-.then(list => {
-    list.forEach(t => {
-        templateSelect.innerHTML +=
-            `<option value="${t.file}">${t.name}</option>`;
+modality.addEventListener("change", loadTemplates);
+loadTemplates();
+
+function loadTemplates(){
+    const mod = modality.value;
+    templateSelect.innerHTML = "<option>Loading...</option>";
+
+    const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${TEMPLATE_ROOT}/${mod}`;
+
+    fetch(apiUrl)
+    .then(r => {
+        if(!r.ok) throw new Error("No templates");
+        return r.json();
+    })
+    .then(files => {
+        templateSelect.innerHTML = "";
+        files
+            .filter(f => f.name.endsWith(".docx"))
+            .forEach(f => {
+                templateSelect.innerHTML +=
+                    `<option value="${f.download_url}">${f.name}</option>`;
+            });
+
+        if(templateSelect.innerHTML === ""){
+            templateSelect.innerHTML = "<option>No templates</option>";
+        }
+    })
+    .catch(() => {
+        templateSelect.innerHTML = "<option>No templates</option>";
     });
-});
+}
 
 /* ================= LOAD TEMPLATE ================= */
 
 function loadTemplate(){
-    if(!templateSelect.value){
-        alert("Select a template");
+    const url = templateSelect.value;
+    if(!url || url === "No templates"){
+        alert("No template selected");
         return;
     }
 
     fetch(API_BASE + "/api/template_from_url", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
-            url: TEMPLATE_BASE + templateSelect.value
-        })
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ url })
     })
     .then(r => r.json())
     .then(d => quill.root.innerHTML = d.html);
@@ -173,7 +190,7 @@ function loadTemplate(){
 function uploadWord(){
     const f = wordUpload.files[0];
     if(!f){
-        alert("Select a Word file");
+        alert("Select Word file");
         return;
     }
 
@@ -181,7 +198,7 @@ function uploadWord(){
     fd.append("file", f);
 
     fetch(API_BASE + "/api/word_to_html", {
-        method: "POST",
+        method:"POST",
         body: fd
     })
     .then(r => r.json())
@@ -192,14 +209,14 @@ function uploadWord(){
 
 function saveReport(){
     if(!patientName.value || !uhid.value){
-        alert("Patient name and UHID required");
+        alert("Patient Name and UHID required");
         return;
     }
 
     fetch(API_BASE + "/api/save_report", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
             patient_name: patientName.value,
             uhid: uhid.value,
             modality: modality.value,
@@ -236,6 +253,7 @@ function fetchReports(){
 
 </body>
 </html>
+
 
 
 
