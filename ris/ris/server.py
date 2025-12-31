@@ -1,104 +1,100 @@
-from flask import Flask, send_from_directory, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import json
 import os
+from werkzeug.utils import secure_filename
 from datetime import datetime
 
-# ------------------------
-# App setup
-# ------------------------
 app = Flask(__name__)
 CORS(app)
 
-# Base directory (ris/ris)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Root reports folder
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 REPORTS_DIR = os.path.join(BASE_DIR, "reports")
 
-# Create reports root if missing
+ALLOWED_MODALITIES = {"CT", "MRI", "USG", "XRAY"}
+ALLOWED_EXT = {".docx"}
+
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
-# Allowed modalities
-ALLOWED_MODALITIES = {"CT", "MRI", "USG", "XRAY"}
-
-# ------------------------
-# Routes
-# ------------------------
-
-# Health check
+# ---------------- BASIC ----------------
 @app.route("/ping")
 def ping():
     return "alive"
 
-# Serve frontend
 @app.route("/")
-def ris_home():
+def home():
     return send_from_directory(BASE_DIR, "index.html")
 
-# ------------------------
-# SAVE REPORT (AUTO FOLDERS)
-# ------------------------
-@app.route("/api/save", methods=["POST"])
-def save_report():
-    data = request.get_json(force=True)
-
-    if not data:
-        return jsonify({"error": "No data received"}), 400
-
-    # Extract fields
-    modality = data.get("modality", "OTHER").upper()
-    uhid = data.get("uhid", "UNKNOWN")
-    patient_name = data.get("patient_name", "UNKNOWN")
-
-    # Validate modality
+# ---------------- TEMPLATES ----------------
+@app.route("/api/templates/<modality>")
+def list_templates(modality):
+    modality = modality.upper()
     if modality not in ALLOWED_MODALITIES:
-        modality = "OTHER"
+        return jsonify([])
 
-    # Create modality folder
+    path = os.path.join(TEMPLATES_DIR, modality)
+    if not os.path.exists(path):
+        return jsonify([])
+
+    files = [f for f in os.listdir(path) if f.endswith(".docx")]
+    return jsonify(files)
+
+@app.route("/api/template/<modality>/<filename>")
+def download_template(modality, filename):
+    modality = modality.upper()
+    return send_from_directory(
+        os.path.join(TEMPLATES_DIR, modality),
+        filename,
+        as_attachment=True
+    )
+
+# ---------------- UPLOAD REPORT ----------------
+@app.route("/api/upload", methods=["POST"])
+def upload_report():
+    file = request.files.get("file")
+    modality = request.form.get("modality", "").upper()
+    uhid = request.form.get("uhid", "UNKNOWN")
+    patient = request.form.get("patient_name", "UNKNOWN")
+
+    if not file or not file.filename.endswith(".docx"):
+        return jsonify({"error": "Only .docx allowed"}), 400
+
+    if modality not in ALLOWED_MODALITIES:
+        return jsonify({"error": "Invalid modality"}), 400
+
     modality_dir = os.path.join(REPORTS_DIR, modality)
     os.makedirs(modality_dir, exist_ok=True)
 
-    # Create filename
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    safe_name = patient_name.replace(" ", "_")
-    filename = f"{uhid}_{safe_name}_{timestamp}.json"
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = secure_filename(f"{uhid}_{patient}_{ts}.docx")
+    file.save(os.path.join(modality_dir, filename))
 
-    file_path = os.path.join(modality_dir, filename)
+    return jsonify({"status": "saved", "file": filename})
 
-    # Save report
-    with open(file_path, "w") as f:
-        json.dump(data, f, indent=2)
-
-    return jsonify({
-        "status": "saved",
-        "modality": modality,
-        "file": filename
-    })
-
-# ------------------------
-# FETCH ALL REPORTS
-# ------------------------
-@app.route("/api/get", methods=["GET"])
-def get_reports():
-    reports = []
-
-    for modality in os.listdir(REPORTS_DIR):
-        modality_path = os.path.join(REPORTS_DIR, modality)
-        if not os.path.isdir(modality_path):
+# ---------------- LIST REPORTS ----------------
+@app.route("/api/reports")
+def list_reports():
+    out = []
+    for mod in ALLOWED_MODALITIES:
+        path = os.path.join(REPORTS_DIR, mod)
+        if not os.path.exists(path):
             continue
+        for f in os.listdir(path):
+            out.append({
+                "modality": mod,
+                "filename": f
+            })
+    return jsonify(out)
 
-        for file in os.listdir(modality_path):
-            if file.endswith(".json"):
-                file_path = os.path.join(modality_path, file)
-                with open(file_path, "r") as f:
-                    data = json.load(f)
+@app.route("/api/report/<modality>/<filename>")
+def download_report(modality, filename):
+    return send_from_directory(
+        os.path.join(REPORTS_DIR, modality),
+        filename,
+        as_attachment=True
+    )
 
-                data["_modality"] = modality
-                data["_file"] = file
-                reports.append(data)
 
-    return jsonify(reports)
 
 
 
