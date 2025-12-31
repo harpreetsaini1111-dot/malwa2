@@ -1,132 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Malwa RIS</title>
-
-<!-- Quill Editor -->
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
+<title>Malwa RIS (Word)</title>
 <style>
-body{
-    font-family: Segoe UI, Arial;
-    background:#f3f6fb;
-    padding:20px;
-}
-.container{
-    background:#fff;
-    padding:20px;
-    border-radius:10px;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
-}
-.grid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:10px;
-    margin-bottom:10px;
-}
-input, select{
-    padding:8px;
-    border-radius:6px;
-    border:1px solid #cbd5e1;
-}
-#editor{
-    height:380px;
-    background:#fff;
-}
-button{
-    padding:12px 18px;
-    border:none;
-    border-radius:6px;
-    color:white;
-    font-weight:600;
-    cursor:pointer;
-}
-.btn-save{background:#16a34a}
-.btn-fetch{background:#2563eb}
-.btn-clear{background:#6b7280}
-
-.actions{
-    display:flex;
-    gap:10px;
-    margin:12px 0;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:10px;
-}
-th, td{
-    border:1px solid #cbd5e1;
-    padding:6px;
-    font-size:13px;
-}
-th{
-    background:#e5e7eb;
-}
+body{font-family:Segoe UI;background:#f3f6fb;padding:20px}
+.container{background:#fff;padding:20px;border-radius:10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+button{padding:10px 14px;border:none;border-radius:6px;color:#fff;cursor:pointer}
+.save{background:#16a34a}
+.load{background:#2563eb}
+.upload{background:#dc2626}
+table{width:100%;border-collapse:collapse;margin-top:15px}
+th,td{border:1px solid #ccc;padding:6px;font-size:13px}
+th{background:#eee}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
-<h2>Malwa Diagnostic Imaging – RIS</h2>
+<h2>Malwa RIS – Word Workflow</h2>
 
-<!-- PATIENT DETAILS -->
 <div class="grid">
     <input id="patientName" placeholder="Patient Name">
-    <input id="age" placeholder="Age">
-    <select id="gender">
-        <option>Male</option>
-        <option>Female</option>
+    <input id="uhid" placeholder="UHID">
+    <select id="modality" onchange="loadTemplates()">
+        <option>CT</option>
+        <option>MRI</option>
+        <option>USG</option>
+        <option>XRAY</option>
     </select>
-    <input id="refDoctor" placeholder="Ref Doctor">
+    <select id="templateSelect"></select>
 </div>
 
-<div class="grid">
-    <input id="patientId" placeholder="UHID">
-    <select id="modality">
-        <option value="CT">CT</option>
-        <option value="MRI">MRI</option>
-        <option value="USG">USG</option>
-        <option value="XRAY">XRAY</option>
-    </select>
-    <input disabled>
-    <input disabled>
-</div>
+<br>
+<button class="load" onclick="downloadTemplate()">Download Template</button>
 
-<!-- QUILL TOOLBAR -->
-<div id="toolbar">
-    <button class="ql-bold"></button>
-    <button class="ql-italic"></button>
-    <button class="ql-underline"></button>
-    <button class="ql-list" value="ordered"></button>
-    <button class="ql-list" value="bullet"></button>
-</div>
+<hr>
 
-<!-- EDITOR -->
-<div id="editor"></div>
+<input type="file" id="reportFile">
+<button class="upload" onclick="uploadReport()">Upload Finished Report</button>
 
-<!-- ACTION BUTTONS -->
-<div class="actions">
-    <button class="btn-save" onclick="saveReport()">Save Report</button>
-    <button class="btn-fetch" onclick="fetchReports()">Fetch Saved Reports</button>
-    <button class="btn-clear" onclick="clearForm()">Clear</button>
-</div>
+<hr>
 
-<!-- SAVED REPORTS TABLE -->
+<button class="save" onclick="fetchReports()">Fetch Saved Reports</button>
+
 <table>
 <thead>
-<tr>
-    <th>#</th>
-    <th>Patient Name</th>
-    <th>UHID</th>
-    <th>Modality</th>
-    <th>Date</th>
-</tr>
+<tr><th>Modality</th><th>File</th><th>Download</th></tr>
 </thead>
 <tbody id="reportTable"></tbody>
 </table>
@@ -134,75 +56,50 @@ th{
 </div>
 
 <script>
-/* ================= CONFIG ================= */
-const API_BASE = ""; // same Render server
-
-/* ================= EDITOR ================= */
-const quill = new Quill('#editor', {
-    theme: 'snow',
-    modules: { toolbar: '#toolbar' }
-});
-
-/* ================= SAVE REPORT ================= */
-function saveReport(){
-    const payload = {
-        patient_name: patientName.value,
-        uhid: patientId.value,
-        age: age.value,
-        gender: gender.value,
-        ref_doctor: refDoctor.value,
-        modality: modality.value,
-        report_html: quill.root.innerHTML,
-        date: new Date().toLocaleString()
-    };
-
-    fetch(API_BASE + "/api/save", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(payload)
-    })
-    .then(r => r.json())
-    .then(() => alert("Report saved successfully"))
-    .catch(err => {
-        console.error(err);
-        alert("Save failed");
+function loadTemplates(){
+    fetch("/api/templates/" + modality.value)
+    .then(r=>r.json())
+    .then(d=>{
+        templateSelect.innerHTML="";
+        d.forEach(t=>templateSelect.innerHTML+=`<option>${t}</option>`);
     });
 }
 
-/* ================= FETCH REPORTS ================= */
+function downloadTemplate(){
+    window.open(`/api/template/${modality.value}/${templateSelect.value}`);
+}
+
+function uploadReport(){
+    const fd = new FormData();
+    fd.append("file", reportFile.files[0]);
+    fd.append("modality", modality.value);
+    fd.append("uhid", uhid.value);
+    fd.append("patient_name", patientName.value);
+
+    fetch("/api/upload",{method:"POST",body:fd})
+    .then(r=>r.json())
+    .then(()=>alert("Report uploaded"));
+}
+
 function fetchReports(){
-    fetch(API_BASE + "/api/get")
-    .then(r => r.json())
-    .then(data => {
-        reportTable.innerHTML = "";
-        data.forEach((r, i) => {
-            reportTable.innerHTML += `
+    fetch("/api/reports")
+    .then(r=>r.json())
+    .then(d=>{
+        reportTable.innerHTML="";
+        d.forEach(r=>{
+            reportTable.innerHTML+=`
             <tr>
-                <td>${i+1}</td>
-                <td>${r.patient_name || ""}</td>
-                <td>${r.uhid || ""}</td>
-                <td>${r._modality || ""}</td>
-                <td>${r.date || ""}</td>
+                <td>${r.modality}</td>
+                <td>${r.filename}</td>
+                <td><a href="/api/report/${r.modality}/${r.filename}">Download</a></td>
             </tr>`;
         });
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Fetch failed");
     });
 }
 
-/* ================= CLEAR ================= */
-function clearForm(){
-    patientName.value = "";
-    patientId.value = "";
-    age.value = "";
-    refDoctor.value = "";
-    quill.root.innerHTML = "";
-}
+loadTemplates();
 </script>
 
 </body>
 </html>
-
 
