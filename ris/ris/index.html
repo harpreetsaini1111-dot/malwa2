@@ -2,26 +2,84 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Malwa RIS (Word)</title>
+<title>Malwa RIS – Word Workflow</title>
+
 <style>
-body{font-family:Segoe UI;background:#f3f6fb;padding:20px}
-.container{background:#fff;padding:20px;border-radius:10px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-button{padding:10px 14px;border:none;border-radius:6px;color:#fff;cursor:pointer}
-.save{background:#16a34a}
-.load{background:#2563eb}
-.upload{background:#dc2626}
-table{width:100%;border-collapse:collapse;margin-top:15px}
-th,td{border:1px solid #ccc;padding:6px;font-size:13px}
-th{background:#eee}
+body{
+    font-family:Segoe UI, Arial;
+    background:#f3f6fb;
+    padding:20px;
+}
+
+.container{
+    background:#fff;
+    padding:20px;
+    border-radius:10px;
+}
+
+h2{margin-bottom:15px}
+h3{
+    margin-top:25px;
+    margin-bottom:10px;
+    color:#374151;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+}
+
+input, select{
+    padding:8px;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+
+.actions{
+    margin-top:10px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+button{
+    padding:10px 16px;
+    border:none;
+    border-radius:6px;
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.btn-blue{background:#2563eb}
+.btn-red{background:#dc2626}
+.btn-green{background:#16a34a}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+th, td{
+    border:1px solid #ccc;
+    padding:8px;
+    font-size:13px;
+}
+
+th{background:#f1f5f9}
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
 <h2>Malwa RIS – Word Workflow</h2>
 
+<!-- SECTION 1 -->
+<h3>1. Patient & Template</h3>
 <div class="grid">
     <input id="patientName" placeholder="Patient Name">
     <input id="uhid" placeholder="UHID">
@@ -34,21 +92,30 @@ th{background:#eee}
     <select id="templateSelect"></select>
 </div>
 
-<br>
-<button class="load" onclick="downloadTemplate()">Download Template</button>
+<div class="actions">
+    <button class="btn-blue" onclick="downloadTemplate()">Download Template</button>
+</div>
 
-<hr>
+<!-- SECTION 2 -->
+<h3>2. Upload Finished Report (Word)</h3>
+<div class="actions">
+    <input type="file" id="reportFile">
+    <button class="btn-red" onclick="uploadReport()">Upload Finished Report</button>
+</div>
 
-<input type="file" id="reportFile">
-<button class="upload" onclick="uploadReport()">Upload Finished Report</button>
-
-<hr>
-
-<button class="save" onclick="fetchReports()">Fetch Saved Reports</button>
+<!-- SECTION 3 -->
+<h3>3. Saved Reports</h3>
+<div class="actions">
+    <button class="btn-green" onclick="fetchReports()">Fetch Saved Reports</button>
+</div>
 
 <table>
 <thead>
-<tr><th>Modality</th><th>File</th><th>Download</th></tr>
+<tr>
+    <th>Modality</th>
+    <th>File</th>
+    <th>Download</th>
+</tr>
 </thead>
 <tbody id="reportTable"></tbody>
 </table>
@@ -66,10 +133,19 @@ function loadTemplates(){
 }
 
 function downloadTemplate(){
+    if(!templateSelect.value){
+        alert("Select a template first");
+        return;
+    }
     window.open(`/api/template/${modality.value}/${templateSelect.value}`);
 }
 
 function uploadReport(){
+    if(!reportFile.files[0]){
+        alert("Select a Word file first");
+        return;
+    }
+
     const fd = new FormData();
     fd.append("file", reportFile.files[0]);
     fd.append("modality", modality.value);
@@ -78,7 +154,7 @@ function uploadReport(){
 
     fetch("/api/upload",{method:"POST",body:fd})
     .then(r=>r.json())
-    .then(()=>alert("Report uploaded"));
+    .then(()=>alert("Report uploaded successfully"));
 }
 
 function fetchReports(){
@@ -91,7 +167,9 @@ function fetchReports(){
             <tr>
                 <td>${r.modality}</td>
                 <td>${r.filename}</td>
-                <td><a href="/api/report/${r.modality}/${r.filename}">Download</a></td>
+                <td>
+                    <a href="/api/report/${r.modality}/${r.filename}">Download</a>
+                </td>
             </tr>`;
         });
     });
@@ -102,4 +180,5 @@ loadTemplates();
 
 </body>
 </html>
+
 
