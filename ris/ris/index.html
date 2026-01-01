@@ -42,9 +42,10 @@ button{
 .blue{background:#2563eb}
 .green{background:#16a34a}
 .orange{background:#ea580c}
+.purple{background:#7c3aed}
 
 #editor{
-    height:380px;
+    height:520px;
     background:white;
     margin-top:10px;
 }
@@ -70,7 +71,6 @@ th{background:#f1f5f9}
 </head>
 
 <body>
-
 <div class="container">
 
 <h2>Malwa RIS</h2>
@@ -88,12 +88,18 @@ th{background:#f1f5f9}
     <input id="study" placeholder="Study / Region">
 </div>
 
-<!-- TEMPLATE + UPLOAD -->
+<!-- TEMPLATE CONTROLS -->
 <div class="grid">
     <select id="templateSelect"></select>
-    <button class="blue" onclick="loadTemplate()">Load Template</button>
+    <button class="blue" onclick="loadTemplate()">Load Template (Drive)</button>
+    <input type="file" id="templateUpload" accept=".docx">
+    <button class="purple" onclick="uploadTemplate()">Upload Template (PC)</button>
+</div>
+
+<!-- WORD UPLOAD -->
+<div class="grid">
     <input type="file" id="wordUpload" accept=".docx">
-    <button class="orange" onclick="uploadWord()">Upload Word</button>
+    <button class="orange" onclick="uploadWord()">Upload Report (Word)</button>
 </div>
 
 <!-- EDITOR -->
@@ -101,8 +107,16 @@ th{background:#f1f5f9}
 
 <!-- ACTIONS -->
 <div class="actions">
-    <button class="green" onclick="saveReport()">Save Report</button>
+    <button class="green" onclick="saveReport()">Save Report (HTML → Drive)</button>
     <button class="blue" onclick="fetchReports()">Fetch Reports</button>
+</div>
+
+<!-- SEARCH REPORTS -->
+<div class="grid">
+    <input id="searchName" placeholder="Search Patient Name">
+    <input id="searchUHID" placeholder="Search UHID">
+    <input id="searchDate" type="date">
+    <button class="blue" onclick="fetchReports()">Search</button>
 </div>
 
 <!-- REPORT LIST -->
@@ -110,8 +124,8 @@ th{background:#f1f5f9}
 <thead>
 <tr>
     <th>Modality</th>
-    <th>File</th>
-    <th>Download</th>
+    <th>Patient | UHID | Date</th>
+    <th>Download (Word)</th>
 </tr>
 </thead>
 <tbody id="reportTable"></tbody>
@@ -120,98 +134,84 @@ th{background:#f1f5f9}
 </div>
 
 <script>
-/* ================= CONFIG ================= */
-
 const API_BASE = "https://malwa-ris-backend.onrender.com";
 
-/* GitHub repo info — PATH FIXED FOR ris/ris */
-const GITHUB_OWNER = "harpreetsaini1111-dot";
-const GITHUB_REPO  = "malwa2";
-const TEMPLATE_ROOT = "ris/ris/templates";
+const modality        = document.getElementById("modality");
+const templateSelect  = document.getElementById("templateSelect");
+const patientName     = document.getElementById("patientName");
+const uhid            = document.getElementById("uhid");
+const study           = document.getElementById("study");
+const wordUpload      = document.getElementById("wordUpload");
+const templateUpload  = document.getElementById("templateUpload");
+const reportTable     = document.getElementById("reportTable");
+const searchName      = document.getElementById("searchName");
+const searchUHID      = document.getElementById("searchUHID");
+const searchDate      = document.getElementById("searchDate");
 
-/* ================= EDITOR ================= */
-
-const quill = new Quill("#editor", { theme: "snow" });
-
-/* ================= LOAD TEMPLATES FROM GITHUB ================= */
+const quill = new Quill("#editor", {
+  theme: "snow",
+  modules: {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      [{ font: [] }],
+      [{ size: ["small", false, "large", "huge"] }],
+      ["bold", "italic", "underline"],
+      [{ color: [] }, { background: [] }],
+      [{ align: [] }],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["clean"]
+    ]
+  }
+});
 
 modality.addEventListener("change", loadTemplates);
 loadTemplates();
 
 function loadTemplates(){
-    const mod = modality.value;
     templateSelect.innerHTML = "<option>Loading...</option>";
-
-    const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${TEMPLATE_ROOT}/${mod}`;
-
-    fetch(apiUrl)
-    .then(r => {
-        if(!r.ok) throw new Error("No templates");
-        return r.json();
-    })
-    .then(files => {
+    fetch(`${API_BASE}/api/templates/${modality.value}`)
+      .then(r => r.json())
+      .then(list => {
         templateSelect.innerHTML = "";
-        files
-            .filter(f => f.name.endsWith(".docx"))
-            .forEach(f => {
-                templateSelect.innerHTML +=
-                    `<option value="${f.download_url}">${f.name}</option>`;
-            });
-
-        if(templateSelect.innerHTML === ""){
-            templateSelect.innerHTML = "<option>No templates</option>";
-        }
-    })
-    .catch(() => {
-        templateSelect.innerHTML = "<option>No templates</option>";
-    });
+        list.forEach(t => {
+          templateSelect.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+        });
+      });
 }
-
-/* ================= LOAD TEMPLATE ================= */
 
 function loadTemplate(){
-    const url = templateSelect.value;
-    if(!url || url === "No templates"){
-        alert("No template selected");
-        return;
-    }
-
-    fetch(API_BASE + "/api/template_from_url", {
+    if(!templateSelect.value) return alert("Select template");
+    fetch(API_BASE + "/api/load_template", {
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ url })
+        body:JSON.stringify({ file_id: templateSelect.value })
     })
     .then(r => r.json())
     .then(d => quill.root.innerHTML = d.html);
 }
 
-/* ================= UPLOAD WORD ================= */
+function uploadTemplate(){
+    if(!templateUpload.files[0]) return alert("Select template Word file");
+    const fd = new FormData();
+    fd.append("file", templateUpload.files[0]);
+    fd.append("modality", modality.value);
+
+    fetch(API_BASE + "/api/upload_template", { method:"POST", body: fd })
+      .then(() => loadTemplates());
+}
 
 function uploadWord(){
-    const f = wordUpload.files[0];
-    if(!f){
-        alert("Select Word file");
-        return;
-    }
-
+    if(!wordUpload.files[0]) return alert("Select Word file");
     const fd = new FormData();
-    fd.append("file", f);
+    fd.append("file", wordUpload.files[0]);
 
-    fetch(API_BASE + "/api/word_to_html", {
-        method:"POST",
-        body: fd
-    })
-    .then(r => r.json())
-    .then(d => quill.root.innerHTML = d.html);
+    fetch(API_BASE + "/api/word_to_html", { method:"POST", body: fd })
+      .then(r => r.json())
+      .then(d => quill.root.innerHTML = d.html);
 }
 
-/* ================= SAVE REPORT ================= */
-
 function saveReport(){
-    if(!patientName.value || !uhid.value){
-        alert("Patient Name and UHID required");
-        return;
-    }
+    if(!patientName.value || !uhid.value) return alert("Patient Name and UHID required");
 
     fetch(API_BASE + "/api/save_report", {
         method:"POST",
@@ -221,17 +221,20 @@ function saveReport(){
             uhid: uhid.value,
             modality: modality.value,
             study: study.value,
+            date: new Date().toISOString().slice(0,10),
             html: quill.root.innerHTML
         })
-    })
-    .then(r => r.json())
-    .then(() => alert("Report saved to Google Drive"));
+    }).then(() => alert("Report saved to Drive"));
 }
 
-/* ================= FETCH REPORTS ================= */
-
 function fetchReports(){
-    fetch(API_BASE + "/api/reports")
+    const params = new URLSearchParams({
+        patient_name: searchName.value || "",
+        uhid: searchUHID.value || "",
+        date: searchDate.value || ""
+    });
+
+    fetch(`${API_BASE}/api/reports?${params.toString()}`)
     .then(r => r.json())
     .then(list => {
         reportTable.innerHTML = "";
@@ -239,12 +242,8 @@ function fetchReports(){
             reportTable.innerHTML += `
             <tr>
                 <td>${r.modality}</td>
-                <td>${r.filename}</td>
-                <td>
-                    <a href="${API_BASE}/api/download_word/${r.id}" target="_blank">
-                        Download
-                    </a>
-                </td>
+                <td>${r.patient_name} | ${r.uhid} | ${r.date}</td>
+                <td><a href="${API_BASE}/api/download_word/${r.id}" target="_blank">Download</a></td>
             </tr>`;
         });
     });
