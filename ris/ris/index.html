@@ -1,216 +1,250 @@
-import os
-import io
-import mammoth
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Malwa Diagnostic Imaging – RIS (Test)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+body{
+    margin:0;
+    font-family:Segoe UI, Arial, sans-serif;
+    background:#f2f4f8;
+}
+header{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:#fff;
+    padding:18px 24px;
+}
+header h1{
+    margin:0;
+    font-weight:600;
+    letter-spacing:0.5px;
+}
+header small{
+    opacity:.8;
+}
+.container{
+    padding:20px;
+}
+.card{
+    background:#fff;
+    border-radius:10px;
+    padding:16px;
+    margin-bottom:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,.05);
+}
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:12px;
+}
+label{
+    font-size:13px;
+    color:#334155;
+}
+input,select,button,textarea{
+    width:100%;
+    padding:8px 10px;
+    border-radius:6px;
+    border:1px solid #cbd5e1;
+    font-size:14px;
+}
+button{
+    border:none;
+    cursor:pointer;
+    font-weight:600;
+}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-success{background:#16a34a;color:#fff}
+.btn-danger{background:#dc2626;color:#fff}
+.btn-secondary{background:#475569;color:#fff}
+button:hover{opacity:.9}
 
-from flask import Flask, request, jsonify, send_file
-from flask_cors import CORS
+#editor{
+    min-height:300px;
+    border:1px solid #cbd5e1;
+    border-radius:6px;
+    padding:12px;
+    overflow:auto;
+}
+#editor:focus{outline:none}
 
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
-from docx import Document
+.list{
+    max-height:200px;
+    overflow:auto;
+    border:1px solid #e5e7eb;
+    border-radius:6px;
+}
+.list div{
+    padding:8px 10px;
+    cursor:pointer;
+    border-bottom:1px solid #e5e7eb;
+}
+.list div:hover{background:#f1f5f9}
+footer{
+    text-align:center;
+    padding:10px;
+    font-size:12px;
+    color:#64748b;
+}
+</style>
+</head>
+<body>
 
-# ================= APP SETUP =================
+<header>
+    <h1>Malwa Diagnostic Imaging – RIS</h1>
+    <small>HTML Test Frontend (Service Account Drive)</small>
+</header>
 
-app = Flask(__name__)
-CORS(app)
+<div class="container">
 
-# ================= GOOGLE DRIVE AUTH =================
+<!-- PATIENT DATA -->
+<div class="card">
+<h3>Patient Details</h3>
+<div class="grid">
+    <div><label>Patient Name</label><input id="patient_name"></div>
+    <div><label>UHID</label><input id="uhid"></div>
+    <div><label>Age / Sex</label><input id="age_sex"></div>
+    <div><label>Date</label><input type="date" id="date"></div>
+    <div><label>Modality</label>
+        <select id="modality" onchange="loadTemplates()">
+            <option value="CT">CT</option>
+            <option value="MRI">MRI</option>
+            <option value="USG">USG</option>
+            <option value="XRAY">X-Ray</option>
+        </select>
+    </div>
+    <div><label>Report Template</label>
+        <select id="templateDropdown" onchange="selectTemplateFromDropdown()">
+            <option value="">-- Select Template --</option>
+        </select>
+    </div>
+</div>
+</div>
 
-SCOPES = ["https://www.googleapis.com/auth/drive"]
+<!-- TEMPLATE SECTION -->
+<div class="card">
+<h3>Templates</h3>
+<div class="grid">
+    <input type="file" id="templateFile" accept=".docx">
+    <button class="btn-primary" onclick="uploadTemplate()">Upload Template</button>
+</div>
+</div>
 
-CREDS_PATH = os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-DRIVE_ROOT_ID = os.environ["DRIVE_ROOT_ID"]
+<!-- EDITOR -->
+<div class="card">
+<h3>Report Editor</h3>
+<div id="editor" contenteditable="true"></div>
+<div class="grid" style="margin-top:12px">
+    <button class="btn-success" onclick="saveReport()">Save Report</button>
+    <button class="btn-danger" onclick="clearEditor()">Clear</button>
+</div>
+</div>
 
-creds = service_account.Credentials.from_service_account_file(
-    CREDS_PATH,
-    scopes=SCOPES
-)
+<!-- REPORT SEARCH -->
+<div class="card">
+<h3>Find Saved Reports</h3>
+<div class="grid">
+    <input placeholder="Patient name" id="search_patient">
+    <input placeholder="UHID" id="search_uhid">
+    <input type="date" id="search_date">
+    <button class="btn-primary" onclick="searchReports()">Search</button>
+</div>
+<div class="list" id="reportList"></div>
+</div>
 
-drive = build("drive", "v3", credentials=creds)
+</div>
 
-# ================= FOLDER MAPPING (REPLACE IDS) =================
-# PUT YOUR REAL GOOGLE DRIVE FOLDER IDs HERE
+<footer>
+Malwa RIS • Test HTML • No emotions were harmed
+</footer>
 
-FOLDERS = {
-    "Templates": {
-        "CT":   "TEMPLATE_CT_FOLDER_ID",
-        "MRI":  "TEMPLATE_MRI_FOLDER_ID",
-        "USG":  "TEMPLATE_USG_FOLDER_ID",
-        "XRAY": "TEMPLATE_XRAY_FOLDER_ID",
-    },
-    "Reports": {
-        "CT":   "REPORT_CT_FOLDER_ID",
-        "MRI":  "REPORT_MRI_FOLDER_ID",
-        "USG":  "REPORT_USG_FOLDER_ID",
-        "XRAY": "REPORT_XRAY_FOLDER_ID",
-    }
+<script>
+const API = "http://localhost:10000";
+
+function loadTemplates(){
+    const m = document.getElementById('modality').value;
+    const dropdown = document.getElementById('templateDropdown');
+    dropdown.innerHTML = '<option value="">-- Select Template --</option>';
+    fetch(`${API}/api/templates/${m}`)
+    .then(r=>r.json())
+    .then(data=>{
+        data.forEach(f=>{
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = f.name;
+            dropdown.appendChild(opt);
+        });
+    });
 }
 
-# ================= ROOT =================
+function selectTemplateFromDropdown(){
+    const id = document.getElementById('templateDropdown').value;
+    if(!id) return;
+    fetch(`${API}/api/load_template`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({file_id:id})
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        document.getElementById('editor').innerHTML = d.html;
+    });
+}
 
-@app.route("/")
-def home():
-    return jsonify({"status": "ok", "service": "Malwa RIS Backend"})
+function uploadTemplate(){
+    const f = document.getElementById('templateFile').files[0];
+    if(!f) return;
+    const m = document.getElementById('modality').value;
+    const fd = new FormData();
+    fd.append('file',f);
+    fd.append('modality',m);
+    fetch(`${API}/api/upload_template`,{method:'POST',body:fd})
+    .then(()=>alert('Template uploaded'));
+}
 
-# ================= WORD → HTML =================
+function saveReport(){
+    const payload = {
+        patient_name:document.getElementById('patient_name').value,
+        uhid:document.getElementById('uhid').value,
+        date:document.getElementById('date').value,
+        modality:document.getElementById('modality').value,
+        html:document.getElementById('editor').innerHTML
+    };
+    fetch(`${API}/api/save_report`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+    })
+    .then(r=>r.json())
+    .then(d=>alert('Saved to Drive'));
+}
 
-@app.route("/api/word_to_html", methods=["POST"])
-def word_to_html():
-    f = request.files["file"]
-    html = mammoth.convert_to_html(io.BytesIO(f.read())).value
-    return jsonify({"html": html})
+function searchReports(){
+    const p=document.getElementById('search_patient').value;
+    const u=document.getElementById('search_uhid').value;
+    const d=document.getElementById('search_date').value;
+    fetch(`${API}/api/reports?patient_name=${p}&uhid=${u}&date=${d}`)
+    .then(r=>r.json())
+    .then(list=>{
+        const box=document.getElementById('reportList');
+        box.innerHTML='';
+        list.forEach(r=>{
+            const div=document.createElement('div');
+            div.textContent=`${r.patient_name} | ${r.modality} | ${r.date}`;
+            div.onclick=()=>window.open(`${API}/api/download_word/${r.id}`,'_blank');
+            box.appendChild(div);
+        })
+    })
+}
 
-# ================= LIST TEMPLATES =================
+function clearEditor(){
+    document.getElementById('editor').innerHTML='';
+}
+</script>
 
-@app.route("/api/templates/<modality>")
-def list_templates(modality):
-    folder_id = FOLDERS["Templates"].get(modality)
-    if not folder_id:
-        return jsonify([])
-
-    files = drive.files().list(
-        q=f"'{folder_id}' in parents and trashed=false",
-        fields="files(id,name)"
-    ).execute().get("files", [])
-
-    return jsonify(files)
-
-# ================= LOAD TEMPLATE =================
-
-@app.route("/api/load_template", methods=["POST"])
-def load_template():
-    file_id = request.json["file_id"]
-
-    req = drive.files().get_media(fileId=file_id)
-    fh = io.BytesIO()
-    MediaIoBaseDownload(fh, req).next_chunk()
-    fh.seek(0)
-
-    html = mammoth.convert_to_html(fh).value
-    return jsonify({"html": html})
-
-# ================= UPLOAD TEMPLATE =================
-
-@app.route("/api/upload_template", methods=["POST"])
-def upload_template():
-    f = request.files["file"]
-    modality = request.form["modality"]
-
-    folder_id = FOLDERS["Templates"].get(modality)
-    if not folder_id:
-        return jsonify({"error": "Invalid modality"}), 400
-
-    media = MediaIoBaseUpload(
-        io.BytesIO(f.read()),
-        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
-
-    drive.files().create(
-        body={
-            "name": f.filename,
-            "parents": [folder_id]
-        },
-        media_body=media
-    ).execute()
-
-    return jsonify({"status": "uploaded"})
-
-# ================= SAVE REPORT =================
-
-@app.route("/api/save_report", methods=["POST"])
-def save_report():
-    data = request.json
-
-    folder_id = FOLDERS["Reports"].get(data["modality"])
-    if not folder_id:
-        return jsonify({"error": "Invalid modality"}), 400
-
-    doc = Document()
-    text = data["html"].replace("<p>", "").replace("</p>", "\n")
-    for line in text.split("\n"):
-        if line.strip():
-            doc.add_paragraph(line)
-
-    buf = io.BytesIO()
-    doc.save(buf)
-    buf.seek(0)
-
-    media = MediaIoBaseUpload(
-        buf,
-        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
-
-    filename = f"{data['patient_name']}_{data['uhid']}_{data['date']}.docx"
-
-    file = drive.files().create(
-        body={
-            "name": filename,
-            "parents": [folder_id]
-        },
-        media_body=media,
-        fields="id"
-    ).execute()
-
-    return jsonify({"status": "saved", "id": file["id"]})
-
-# ================= LIST REPORTS =================
-
-@app.route("/api/reports")
-def reports():
-    patient = request.args.get("patient_name", "").lower()
-    uhid = request.args.get("uhid", "").lower()
-    date = request.args.get("date", "")
-
-    results = []
-
-    for modality, folder_id in FOLDERS["Reports"].items():
-        files = drive.files().list(
-            q=f"'{folder_id}' in parents and trashed=false",
-            fields="files(id,name)"
-        ).execute().get("files", [])
-
-        for f in files:
-            name = f["name"].lower()
-            if patient and patient not in name:
-                continue
-            if uhid and uhid not in name:
-                continue
-            if date and date not in name:
-                continue
-
-            parts = f["name"].rsplit("_", 2)
-            if len(parts) == 3:
-                results.append({
-                    "id": f["id"],
-                    "patient_name": parts[0],
-                    "uhid": parts[1],
-                    "date": parts[2].replace(".docx", ""),
-                    "modality": modality
-                })
-
-    return jsonify(results)
-
-# ================= DOWNLOAD REPORT =================
-
-@app.route("/api/download_word/<file_id>")
-def download_word(file_id):
-    req = drive.files().get_media(fileId=file_id)
-    fh = io.BytesIO()
-    MediaIoBaseDownload(fh, req).next_chunk()
-    fh.seek(0)
-
-    return send_file(
-        fh,
-        as_attachment=True,
-        download_name="report.docx"
-    )
-
-# ================= RUN =================
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
-
+</body>
+</html>
 
 
 
